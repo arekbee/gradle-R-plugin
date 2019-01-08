@@ -1,0 +1,69 @@
+plugins {
+    id "com.gradle.plugin-publish" version "0.10.0"
+    id 'java-gradle-plugin'
+    id 'groovy'
+    id 'maven-publish'
+    id 'ivy-publish'
+}
+
+repositories {
+    jcenter()
+}
+
+group = 'org.arekbee'
+version = '0.1'
+
+gradlePlugin {
+    plugins {
+        greetingPlugin  {
+            id = 'org.arekbee.gradle-R-plugin'
+            implementationClass = 'org.arekbee.GreetingPlugin'
+        }
+    }
+}
+
+
+pluginBundle {
+    website = 'http://www.lajsldjlasjdljalsjdljasldjlasjdlqjweljqlwj3l1j2l3j.org/'
+    vcsUrl = 'https://aksjdhkahsdkjhaskdhk/asdasdqweqwe123123123/gradle'
+    description = 'Greetings from here!'
+    tags = ['greetings', 'salutations']
+
+    plugins {
+        greetingPlugin {
+            displayName = 'Gradle Greeting plugin'
+            tags = ['R', 'devtools', 'packrat', 'RCode', 'RExec']
+            version = version
+        }
+    }
+}
+
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+publishing {
+    repositories {
+        maven {
+            url '../../consuming/maven-repo'
+        }
+        ivy {
+            url '../../consuming/ivy-repo'
+        }
+    }
+}
+
+
+
+task RunIt {
+    dependsOn build
+    dependsOn publish
+    dependsOn test
+}
