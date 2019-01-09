@@ -15,20 +15,24 @@ buildscript {
 }
 
 apply plugin: 'org.arekbee.gradle-R-plugin'
-import org.arekbee.RCode
-
-task restore(type:RCode) {
-    group = 'packrat'
-    expression = "packrat::restore()"
-    onlyIf {
-        file('packrat/packrat.lock').exists()
-    }
+r {
+    interpreter = 'D:\\Programs\\Microsoft\\ROpen\\R-3.5.0\\bin\\x64\\R.exe'
+    src = './src1/lintr-master/lintr-master'
 }
 
-task version {
-    rcode {
-        codeExpression = 'version'
-    }
+rpackage {
+    dest = './outputs'
+}
+
+
+
+import org.arekbee.RCode
+task task_build(type:RCode) {
+    println("Client interpreter:${interpreter}")
+    println("client workingDir: ${currentDir}")
+    group = 'std'
+    expression = "devtools::build()"
+
 }
 ```
 
