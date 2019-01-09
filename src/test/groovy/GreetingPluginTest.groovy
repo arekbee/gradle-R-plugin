@@ -1,4 +1,4 @@
-import org.arekbee.RExec
+import org.arekbee.RCode
 import org.gradle.api.Project
 import org.gradle.internal.impldep.org.junit.Test
 
@@ -8,6 +8,7 @@ class GreetingPluginTest {
         Project project = ProjectBuilder.builder().build()
         project.pluginManager.apply 'org.samples.greeting'
 
-        assertTrue(project.tasks.hello instanceof RExec)
+        assertTrue(project.tasks.build instanceof RCode)
+        assertTrue(project.tasks.restore instanceof RCode)
     }
 }
