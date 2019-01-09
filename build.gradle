@@ -24,7 +24,7 @@ gradlePlugin {
 
 
 pluginBundle {
-    website = 'http://www.lajsldjlasjdljalsjdljasldjlasjdlqjweljqlwj3l1j2l3j.org/'
+    website = 'http://www.lajsldjlasjdljasjdljasldjlasjdlqjweljqlwj3l1j2l3j.org/'
     vcsUrl = 'https://aksjdhkahsdkjhaskdhk/asdasdqweqwe123123123/gradle'
     description = 'Greetings from here!'
     tags = ['greetings', 'salutations']
