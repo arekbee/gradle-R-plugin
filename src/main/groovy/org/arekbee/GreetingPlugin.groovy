@@ -12,41 +12,38 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.Exec
 
 import org.gradle.api.plugins.BasePlugin
-
+import org.gradle.initialization.LoadProjectsBuildOperationType
 
 
 class RPluginExtension {
-    final Property<String> codeExpression
-    final Property<String> codeFilePath
+    final Property<String> interpreter
+    final Property<String> preArgs
+    final Property<String> src
 
     RPluginExtension(Project project) {
-        println("in RPluginExtension")
-        codeExpression = project.objects.property(String)
-        codeExpression.set('version')
-        codeFilePath = project.objects.property(String)
-        codeFilePath.set('')
-        println("out RPluginExtension")
-    }
+        interpreter = project.objects.property(String)
+        interpreter.set('R')
+        preArgs = project.objects.property(String)
+        preArgs.set('--no-save')
 
+        src = project.objects.property(String)
+        src.set('.')
+    }
 }
 
+class RPackagePluginExtension extends RPluginExtension {
 
-class RPackagePluginExtension {
-    final Property<String> src
-    final Property<String> desc
+    final Property<String> dest
 
     RPackagePluginExtension(Project project) {
-        println("in RPackagePluginExtension")
-        src = project.objects.property(String)
-        src.set('.')
-        src = project.objects.property(String)
-        src.set('.')
-        println("out RPackagePluginExtension")
+        super(project)
+        dest = project.objects.property(String)
+        dest.set('.')
     }
 }
 
 
-
+/*
 class RExec extends Exec {
     RExec() {
         println("In constructor RExec")
@@ -63,9 +60,27 @@ class RExec extends Exec {
         println("out constructor RExec")
     }
 }
+*/
+
 
 class RCode extends DefaultTask {
-        File workingDir = project.rootDir
+
+        String  interpreter
+        String  currentDir
+        String preArgs
+
+        RCode() {
+            super()
+
+            interpreter = project.r.interpreter.getOrElse('R')
+            currentDir = project.r.src.getOrElse('.')
+            preArgs = project.r.preArgs.getOrNull()
+
+            println("RCode: project.rpackage.src.get(): ${project.rpackage.src.get()}")
+            println("RCode: project.r.get(): ${project.r.interpreter.get()}")
+            println("RCode project.r.src is ${project.r.src.get()}")
+        }
+
         InputStream standardInput = null
         OutputStream standardOutput = null
         String command = null
@@ -74,7 +89,12 @@ class RCode extends DefaultTask {
 
         @TaskAction
         def exec() {
-            def myargs = ['R']
+            def myargs = [interpreter]
+            if (preArgs != null)
+            {
+                myargs.add(preArgs)
+            }
+
             if (command != null){
                 myargs.add("CMD")
                 myargs.add(command)
@@ -87,7 +107,7 @@ class RCode extends DefaultTask {
                 myargs.add(file.getAbsolutePath())
             }
             project.exec {
-                workingDir workingDir
+                workingDir currentDir
                 commandLine myargs
                 if (standardInput != null) {
                     standardInput = standardInput
@@ -99,57 +119,46 @@ class RCode extends DefaultTask {
         }
     }
 
-class DevtoolsRExec extends RExec{
-    DevtoolsRExec() {
-        group = 'devtools'
-        println("in DevtoolsRExec")
-    }
-}
-class PackratRExec extends RExec{
-    PackratRExec() {
-        group = 'packrat'
-        println("in PackratRExec")
-    }
-}
-
-
-
 class GreetingPlugin implements Plugin<Project> {
     void apply(Project project) {
-        println("in GreetingPlugin.apply ")
-        def extensionrpackage = project.extensions.create("rpackage",RPackagePluginExtension, project)
-        def extensionrcode = project.extensions.create("rcode",RPluginExtension, project)
+        println("in GreetingPlugin.apply : ${project}")
 
-        println("in GreetingPlugin.apply after extension")
-        project.tasks.create('hello') {
-            println("in hello")
-            doLast{
-                println("in hello doLast")
-                def codeExpression = extensionrcode.codeExpression
-                println(codeExpression)
-            }
+        def rpackage = project.extensions.create("rpackage",RPackagePluginExtension, project)
+        def r = project.extensions.create("r",RPluginExtension, project)
+
+        println("project.rpackage.src is: ${project.rpackage.src}")
+        println("project.r.interpreter is: ${project.r.interpreter}")
+        println("ASD")
+        println("rpackage: $rpackage.src")
+        println("r: $r.src")
+
+
+
+        project.tasks.create('version', type:RCode) {
+            println('in version')
+            println("interpreter:${interpreter}")
+            expression = "version"
+
+        }
+
+        project.task('build', type:RCode) {
+            println('in load_all')
+            println("interpreter:${interpreter}")
+            group = 'devtools'
+            expression = "devtools::build()"
+
         }
 
 
-        project.task('load_all', type:DevtoolsRExec) {
-            println("in load_all")
-            doFirst {
-                println("in load_all doFirst")
-                args += "devtools::load_all()"
+        project.task('restore', type:RCode) {
+            println('in restore')
+            group = 'packrat'
+            onlyIf {
+                file("${project.rpackage.src.get()}/packrat").exists()
             }
-        }
-        project.task('code', type:RExec) {
-            println("in code")
-            doFirst {
-                println("in code doFirst")
-                def codeExpression = extensionrcode.codeExpression
-                args += codeExpression.get()
-                println(codeExpression.get())
-            }
+            expression = 'packrat::restore()'
         }
 
 
     }
-
-
 }
