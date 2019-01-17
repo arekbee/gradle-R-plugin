@@ -15,7 +15,7 @@ version = '0.1'
 
 gradlePlugin {
     plugins {
-        greetingPlugin  {
+        rPlugin  {
             id = 'org.arekbee.gradle-R-plugin'
             implementationClass = 'org.arekbee.GreetingPlugin'
         }
@@ -24,14 +24,14 @@ gradlePlugin {
 
 
 pluginBundle {
-    website = 'http://www.lajsldjlasjdljasjdljasldjlasjdlqjweljqlwj3l1j2l3j.org/'
-    vcsUrl = 'https://aksjdhkahsdkjhaskdhk/asdasdqweqwe123123123/gradle'
-    description = 'Greetings from here!'
-    tags = ['greetings', 'salutations']
+    website = 'https://github.com/arekbee/gradle-R-plugin'
+    vcsUrl = 'https://github.com/arekbee/gradle-R-plugin'
+    description = 'Gradle R plugin for R projects and packages'
+    tags = ['R', 'RStudio']
 
     plugins {
-        greetingPlugin {
-            displayName = 'Gradle Greeting plugin'
+        rPlugin  {
+            displayName = 'Gradle R Plugin'
             tags = ['R', 'devtools', 'packrat', 'RCode', 'RExec']
             version = version
         }
