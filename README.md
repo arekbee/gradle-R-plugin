@@ -21,7 +21,7 @@ gradle init
 In your R project, add the following plugin declaration to your build.gradle file:
 ``` groove
 plugins {
-  id "org.arekbee.gradle-R-plugin" version "0.3"
+  id "com.github.arekbee.gradle-R-plugin" version "0.3"
 }
 ```
 
@@ -34,11 +34,11 @@ buildscript {
     }
   }
   dependencies {
-    classpath "org.arekbee:gradle-R-plugin:0.3"
+    classpath "com.github.arekbee:gradle-R-plugin:0.3"
   }
 }
 
-apply plugin: "org.arekbee.gradle-R-plugin"
+apply plugin: "com.github.arekbee.gradle-R-plugin"
 ```
 
 Alternatively to gradle plugin portal, the plugin JAR is also available in directly available on Maven Central.
@@ -62,7 +62,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.arekbee:gradle-R-plugin:0.3'
+    classpath 'com.github.arekbee:gradle-R-plugin:0.3'
   }
 }
 ```

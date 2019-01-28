@@ -12,14 +12,14 @@ repositories {
     mavenCentral()
 }
 
-group = 'org.arekbee'
+group = 'com.github.arekbee'
 version = '0.3'
 def pluginName = 'gradle-R-plugin'
 
 gradlePlugin {
     plugins {
         rPlugin  {
-            id = "org.arekbee.${pluginName}"
+            id = "com.github.arekbee.${pluginName}"
             implementationClass = 'org.arekbee.RPlugin'
         }
     }
