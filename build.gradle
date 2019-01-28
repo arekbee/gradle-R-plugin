@@ -11,13 +11,13 @@ repositories {
 }
 
 group = 'org.arekbee'
-version = '0.1'
+version = '0.3'
 
 gradlePlugin {
     plugins {
         rPlugin  {
             id = 'org.arekbee.gradle-R-plugin'
-            implementationClass = 'org.arekbee.GreetingPlugin'
+            implementationClass = 'org.arekbee.RPlugin'
         }
     }
 }
@@ -27,7 +27,7 @@ pluginBundle {
     website = 'https://github.com/arekbee/gradle-R-plugin'
     vcsUrl = 'https://github.com/arekbee/gradle-R-plugin'
     description = 'Gradle R plugin for R projects and packages'
-    tags = ['R', 'RStudio']
+    tags = ['R', 'RStudio', 'gradle-R']
 
     plugins {
         rPlugin  {
