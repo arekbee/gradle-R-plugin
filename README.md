@@ -2,6 +2,9 @@
 
 This Gradle plugin provides tasks to build and deploy R scripts and packages.
 
+gradle-R-plugin has been also uploaded into [gradle plugin portal](https://plugins.gradle.org/plugin/org.arekbee.gradle-R-plugin)
+
+
 
 # How to use it?
 
@@ -117,7 +120,7 @@ After setting the R plugin, you can now run commands like ./gradlew version in t
 | rPackageSpellCheck | Runs a spell check on text fields in the package description file, manual pages, and optionally vignettes. Wraps the spelling package.
 | rPackageSubmitCran | This uses the new CRAN web-form submission process. After submission, you will receive an email asking you to confirm submission - this is used to check that the package is submitted by the maintainer.
 | rPackageTest | Reloads package code then runs all testthat tests
-| rPackageTest_coverage | Runs test coverage on your package
+| rPackageTestCoverage | Runs test coverage on your package
 | rSessionInfo | Print version information about R, the OS and attached or loaded packages.
 
 ## Custom tasks
