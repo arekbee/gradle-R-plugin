@@ -2,15 +2,28 @@ package org.arekbee
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Input
 
 class RCode extends DefaultTask {
 
+    @Optional @Input
     String  interpreter,src,preArgs
+
+    @Optional
     InputStream standardInput = null
+
+    @Optional
     OutputStream standardOutput = null
+
+    @Optional
     String command = null
+
+    @Optional @Input
     String expression = null
+
+    @Optional @InputFile
     File file = null
 
     RCode() {
@@ -26,31 +39,30 @@ class RCode extends DefaultTask {
         src = src ?: project.r.src.get()
         preArgs = preArgs ?: project.r.preArgs.get()
 
-        def myargs = [interpreter]
+        def cmdargs = [interpreter]
         if (preArgs != null)
         {
-            myargs.add(preArgs)
+            cmdargs.add(preArgs)
         }
 
         if (command != null){
-            myargs.add("CMD")
-            myargs.add(command)
+            cmdargs.add("CMD")
+            cmdargs.add(command)
         }else if (expression != null){
-            myargs.add("-q")
-            myargs.add("-e")
-            myargs.add(expression)
+            cmdargs.add("-q")
+            cmdargs.add("-e")
+            cmdargs.add(expression)
         }else if (file != null){
             println("Running file: ${file} path: ${file.getAbsolutePath()}")
-            myargs.add("-f")
-            myargs.add(file.getAbsolutePath())
+            cmdargs.add("-f")
+            cmdargs.add(file.getAbsolutePath())
         }
 
         project.exec {
             workingDir src
-            commandLine myargs
+            commandLine cmdargs
             standardInput = standardInput?: standardInput
             standardOutput = standardOutput?: standardOutput
-
         }
     }
 }

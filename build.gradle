@@ -4,19 +4,22 @@ plugins {
     id 'groovy'
     id 'maven-publish'
     id 'ivy-publish'
+    id 'signing'
 }
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 group = 'org.arekbee'
 version = '0.3'
+def pluginName = 'gradle-R-plugin'
 
 gradlePlugin {
     plugins {
         rPlugin  {
-            id = 'org.arekbee.gradle-R-plugin'
+            id = "org.arekbee.${pluginName}"
             implementationClass = 'org.arekbee.RPlugin'
         }
     }
@@ -27,7 +30,7 @@ pluginBundle {
     website = 'https://github.com/arekbee/gradle-R-plugin'
     vcsUrl = 'https://github.com/arekbee/gradle-R-plugin'
     description = 'Gradle R plugin for R projects and packages'
-    tags = ['R', 'RStudio', 'gradle-R']
+    tags = ['R', 'RStudio', pluginName ]
 
     plugins {
         rPlugin  {
@@ -42,6 +45,9 @@ pluginBundle {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
+    testCompile('org.spockframework:spock-core:1.1-groovy-2.4') {
+        exclude group: 'org.codehaus.groovy'
+    }
 }
 
 task sourcesJar(type: Jar) {
@@ -63,6 +69,7 @@ publishing {
 
 
 task RunIt {
+    dependsOn check
     dependsOn build
     dependsOn publish
     dependsOn test

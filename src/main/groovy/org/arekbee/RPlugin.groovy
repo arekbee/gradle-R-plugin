@@ -79,7 +79,7 @@ class RPlugin implements Plugin<Project> {
             }
 
         }
-        project.task('rPackageTest_coverage', type:DevtoolsRCode) {
+        project.task('rPackageTestCoverage', type:DevtoolsRCode) {
             description = 'Runs test coverage on your package'
             expression = 'devtools::test_coverage()'
         }
