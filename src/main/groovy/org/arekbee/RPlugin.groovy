@@ -110,6 +110,13 @@ class RPlugin implements Plugin<Project> {
                     'however it is possible to override any or all of them using the linters paramete'
             expression = 'devtools::lint()'
         }
+
+        project.task('rPackageUseBuildIgnoreGradle', type:DevtoolsRCode) {
+            description = 'Adds gradle files into .Rbuildignore file'
+            expression = 'devtools::use_build_ignore(\'.gradle\',escape=FALSE)'
+        }
+
+
     }
 }
 
