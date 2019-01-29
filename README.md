@@ -4,7 +4,7 @@
 
 This Gradle plugin provides tasks to build and deploy R scripts and packages.
 
-gradle-R-plugin has been also uploaded into [gradle plugin portal](https://plugins.gradle.org/plugin/org.arekbee.gradle-R-plugin)
+gradle-R-plugin has been also uploaded into [gradle plugin portal](https://plugins.gradle.org/plugin/com.github.arekbee.gradle-R-plugin)
 
 
 
