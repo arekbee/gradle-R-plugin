@@ -19,7 +19,6 @@ import org.arekbee.DevtoolsRCode
 import org.arekbee.PackratRCode
 
 
-
 class RPlugin implements Plugin<Project> {
     void apply(Project project) {
         println("in RPlugin.apply : ${project}")
@@ -27,6 +26,9 @@ class RPlugin implements Plugin<Project> {
         project.extensions.create("rpackage",RPackagePluginExtension, project)
         project.extensions.create("r",RPluginExtension, project)
 
+        project.task('rhome', type:RCode) {
+            expression = "R.home()"
+        }
 
         project.task('rhome', type:RCode) {
             expression = "R.home()"
@@ -40,11 +42,21 @@ class RPlugin implements Plugin<Project> {
             expression = 'sessioninfo::sessionInfo()'
         }
 
-        project.task('rRestore', type:PackratRCode) {
+        project.task('rPackratRestore', type:PackratRCode) {
             expression = 'packrat::restore()'
         }
-
-
+        project.task('rPackratStatus', type:PackratRCode) {
+            expression = 'packrat::status()'
+        }
+        
+        project.task('rPackratInit', type:PackratRCode) {
+            expression = 'packrat::init()'
+        }
+        
+        project.task('rPackratSnapshot', type:PackratRCode) {
+            expression = 'packrat::.snapshotImpl(snapshot.sources=FALSE,\'.\')'
+        }
+        
         project.task('rPackageCleanVignettes', type:DevtoolsRCode) {
             description = 'This uses a fairly rudimentary algorithm where any files in inst/doc with a name that exists in vignettes are removed'
             expression = 'devtools::clean_vignettes()'
@@ -56,7 +68,7 @@ class RPlugin implements Plugin<Project> {
         
         project.task('rPackageBuild', type:DevtoolsRCode) {
             description = 'Builds a package file from package sources'
-            expression = 'devtools::build()'
+            expression = 'devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'build\')'
         }
 
         project.task('rPackageBuildWin', type:DevtoolsRCode) {
@@ -117,8 +129,57 @@ class RPlugin implements Plugin<Project> {
 
         project.task('rPackageUseBuildIgnoreGradle', type:DevtoolsRCode) {
             description = 'Adds gradle files into .Rbuildignore file'
-            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\', \'tests/\',\'packrat/\'),escape=FALSE)'
+            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\',\'tests/\',\'packrat/\',\'gradle.properties\'),escape=FALSE)'
         }
+
+        
+        project.task('rPackageVersion', type:DevtoolsRCode) {
+            description = 'Sets version of R package'
+            def versionRelease = 0.0.1
+            expression = "x=read.dcf('DESCRIPTION');x[,'Version']='" + versionRelease + "';write.dcf(x,file='DESCRIPTION')"
+        }
+        
+         project.task('rRepoWritePackagesFile',  type:RCode) {
+             def destLocalRepoPath = ""
+             expression = "tools::write_PACKAGES(\'$destLocalRepoPath\',type=\'source\',verbose=TRUE,subdirs=FALSE,addFiles=TRUE)"
+        }
+        
+        
+         project.task('rRepoCopy',  type:Copy) {
+            def distPath = ""
+            def destLocalRepoPath = ""
+            println "Copy files from $distPath to $destLocalRepoPath repo"
+            from distPath
+            include '*.tar.gz'
+            into destLocalRepoPath
+            fileMode 0755
+        }
+        
+        
+         project.task('rRepoArchive') {
+            println "It should archive old packages"
+         }
+        
+        
+        project.task('rPackageBuildUnzip') {
+            def buildDir = ""
+            def unzippedDir = ""
+            FileTree tree = fileTree(dir: "$buildDir")
+            tree.include "*.tar.gz"
+            tree.each { File file -> println "tar.gz file:  $file"}
+            if (!tree.isEmpty()) {
+                def fileToUnzip  = tree.getAt(-1)
+                println "unzip file $fileToUnzip into $unzippedDir"
+                copy {
+                    from tarTree(resources.gzip("$fileToUnzip"))
+                    into unzippedDir
+                }
+            }else {
+                println "There is not file in $buildDir for pattern $prefixModelName"
+            }
+        }
+        
+        
 
 
     }
@@ -143,11 +204,23 @@ class RPluginExtension {
 
 class RPackagePluginExtension extends RPluginExtension {
     final Property<String> dest
-
+    final Property<String> name     // name of package
+    final Property<String> unzipDir // for unzipping r package after build
+    final Property<String> version // version of package
+    
+    
     RPackagePluginExtension(Project project) {
         super(project)
         dest = project.objects.property(String)
         dest.set('.')
+    }
+}
+
+class RRepositoryPluginExtension {
+    final Property<String> local //location of local repository
+        
+    RRepositoryPluginExtension(Project project) {
+    
     }
 }
 
