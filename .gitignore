@@ -1,7 +1,37 @@
 .gradle
 /build/
-/out/
-.idea
+
+
+# IDEA
+!/.idea
+/.idea/*
+!/.idea/codeStyles
+!/.idea/inspectionProfiles
+*/**/.idea
+.shelf
+/*.iml
+/*.ipr
+/*.iws
+/buildSrc/.idea
+/buildSrc/.shelf
+/buildSrc/*.iml
+/buildSrc/*.ipr
+/buildSrc/*.iws
+/buildSrc/out
+/buildSrc/subprojects/*/*.iml
+/buildSrc/subprojects/*/out
+/out
+
+
+# Logs
+/*.log
+
+# OS generated files
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+
 
 # Ignore Gradle GUI config
 gradle-app.setting
