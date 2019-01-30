@@ -117,7 +117,7 @@ class RPlugin implements Plugin<Project> {
 
         project.task('rPackageUseBuildIgnoreGradle', type:DevtoolsRCode) {
             description = 'Adds gradle files into .Rbuildignore file'
-            expression = 'devtools::use_build_ignore(\'.gradle\',escape=FALSE)'
+            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\', \'tests/\',\'packrat/\'),escape=FALSE)'
         }
 
 
