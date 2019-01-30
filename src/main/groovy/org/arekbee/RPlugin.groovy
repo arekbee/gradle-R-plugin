@@ -49,7 +49,11 @@ class RPlugin implements Plugin<Project> {
             description = 'This uses a fairly rudimentary algorithm where any files in inst/doc with a name that exists in vignettes are removed'
             expression = 'devtools::clean_vignettes()'
         }
-
+        project.task('rPackageInit', type:DevtoolsRCode) {
+            description = 'Initialize R package'
+            expression = "devtools::create('.'); devtools::use_readme_md(); devtools::use_testthat()"
+        }
+        
         project.task('rPackageBuild', type:DevtoolsRCode) {
             description = 'Builds a package file from package sources'
             expression = 'devtools::build()'
