@@ -111,6 +111,7 @@ After setting the R plugin, you can now run commands like ./gradlew version in t
 |----------------------------|---
 | rhome  | Show the version of R
 | rgetwd | Show the working directory
+| rPackageInit | Initialize R package
 | rPackageBuild | Builds a package file from package sources
 | rPackageBuildVignettes | Builds package vignettes using the same algorithm that R CMD build does. This means including non-Sweave vignettes, using makefiles (if present), and copying over extra files
 | rPackageBuildWin | Bundling source package, and then uploading to http://win-builder.r-project.org/
