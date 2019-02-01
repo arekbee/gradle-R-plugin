@@ -5,16 +5,41 @@ plugins {
     id 'maven-publish'
     id 'ivy-publish'
     id 'signing'
+    id "io.codearte.nexus-staging" version "0.20.0"
+    id 'maven'
 }
 
 repositories {
     jcenter()
     mavenCentral()
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 
 group = 'com.github.arekbee'
 version = '0.3'
 def pluginName = 'gradle-R-plugin'
+def pluginDescription = 'Gradle R plugin for R projects and packages'
+def website = 'https://github.com/arekbee/gradle-R-plugin'
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
 
 gradlePlugin {
     plugins {
@@ -25,11 +50,10 @@ gradlePlugin {
     }
 }
 
-
 pluginBundle {
-    website = 'https://github.com/arekbee/gradle-R-plugin'
+    website = website
     vcsUrl = 'https://github.com/arekbee/gradle-R-plugin'
-    description = 'Gradle R plugin for R projects and packages'
+    description = pluginDescription
     tags = ['R', 'RStudio', pluginName ]
 
     plugins {
@@ -41,7 +65,6 @@ pluginBundle {
     }
 }
 
-
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
@@ -50,27 +73,84 @@ dependencies {
     }
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    classifier = 'sources'
-}
 
 publishing {
     repositories {
         maven {
             url '../../consuming/maven-repo'
+
         }
         ivy {
             url '../../consuming/ivy-repo'
         }
     }
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            artifactId = pluginName
+            version = version
+
+            from components.java
+        }
+    }
 }
 
 
+nexusStaging {
+    //packageGroup = "org.mycompany" //optional if packageGroup == project.getGroup()
+    //stagingProfileId = "yourStagingProfileId" //when not defined will be got from server using "packageGroup"
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: nexusUsername, password: nexusPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: nexusUsername, password: nexusPassword)
+            }
+
+            pom.project {
+                name pluginName
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description pluginDescription
+                url website
+
+                scm {
+                    connection website
+                    developerConnection website
+                    url website
+                }
+
+                licenses {
+                    license {
+                        name 'MIT License'
+                        url 'https://github.com/arekbee/gradle-R-plugin/blob/master/LICENSE'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'arekbee'
+                        name = 'arekbee'
+                        email 'arekbee@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+}
 
 task RunIt {
     dependsOn check
     dependsOn build
     dependsOn publish
     dependsOn test
+    dependsOn uploadArchives
 }

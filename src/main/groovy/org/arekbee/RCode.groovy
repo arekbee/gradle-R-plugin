@@ -6,18 +6,35 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Input
 
-class RCode extends DefaultTask {
+
+class RTask extends DefaultTask {
+    @Optional @Input
+    String src
+    RTask() {
+        super()
+        group = 'rbase'
+    }
+
+    def checkSrc() {
+        println("Checking src on value $src")
+        def dir = new File(src)
+        if (!dir.exists()) {
+            dir.mkdir()
+        }
+    }
+}
+
+class RCode extends RTask {
+    @Optional @Input
+    String  interpreter,preArgs
 
     @Optional @Input
-    String  interpreter,src,preArgs
-
-    @Optional
     InputStream standardInput = null
 
-    @Optional
+    @Optional @Input
     OutputStream standardOutput = null
 
-    @Optional
+    @Optional @Input
     String command = null
 
     @Optional @Input
@@ -25,11 +42,6 @@ class RCode extends DefaultTask {
 
     @Optional @InputFile
     File file = null
-
-    RCode() {
-        super()
-        group = 'rbase'
-    }
 
     @TaskAction
     def exec() {
@@ -39,6 +51,7 @@ class RCode extends DefaultTask {
         src = src ?: project.r.src.get()
         preArgs = preArgs ?: project.r.preArgs.get()
 
+        println("Src is $src")
         def cmdargs = [interpreter]
         if (preArgs != null)
         {
@@ -58,6 +71,9 @@ class RCode extends DefaultTask {
             cmdargs.add(file.getAbsolutePath())
         }
 
+        println("Before checking src")
+        checkSrc()
+        println("After checking src")
         project.exec {
             workingDir src
             commandLine cmdargs
@@ -69,17 +85,30 @@ class RCode extends DefaultTask {
 
 class DevtoolsRCode extends RCode {
     DevtoolsRCode() {
-        super()
         group = "devtools"
+    }
+}
+
+class PackageRCode extends  DevtoolsRCode {
+    PackageRCode ()    {
         onlyIf {
             new File("${project.r.src.get()}").exists()
         }
     }
 }
 
+class TestedPackageRCode extends  PackageRCode {
+    TestedPackageRCode ()    {
+        onlyIf {
+            new File("${project.r.src.get()}/inst/tests").exists() || new File("${project.r.src.get()}/tests/testthat").exists()
+        }
+    }
+}
+
+
+
 class PackratRCode extends RCode {
     PackratRCode() {
-        super()
         group = "packrat"
         onlyIf {
             new File("${project.r.src.get()}/packrat").exists()

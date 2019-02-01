@@ -4,6 +4,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Property
@@ -17,6 +18,7 @@ import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.arekbee.RCode
 import org.arekbee.DevtoolsRCode
 import org.arekbee.PackratRCode
+import org.gradle.api.tasks.Copy
 
 
 class RPlugin implements Plugin<Project> {
@@ -25,16 +27,21 @@ class RPlugin implements Plugin<Project> {
 
         project.extensions.create("rpackage",RPackagePluginExtension, project)
         project.extensions.create("r",RPluginExtension, project)
+        project.extensions.create("rrepo", RRepositoryPluginExtension, project)
+
 
         project.task('rhome', type:RCode) {
             expression = "R.home()"
         }
 
-        project.task('rhome', type:RCode) {
-            expression = "R.home()"
-        }
         project.task('rgetwd', type:RCode) {
             expression = "getwd()"
+        }
+
+        project.task('rInstallPackages', type:RCode) {
+            def packagesList = "'DT','devtools','sessioninfo','covr','testthat','packrat','rversions','hunspell','xtable'"
+            description = 'Installs R packages which are required for gradle-R-plugin like $packagesList'
+            expression = "install.packages(c($packagesList))"
         }
 
         project.task('rSessionInfo', type:RCode) {
@@ -57,85 +64,97 @@ class RPlugin implements Plugin<Project> {
             expression = 'packrat::.snapshotImpl(snapshot.sources=FALSE,\'.\')'
         }
         
-        project.task('rPackageCleanVignettes', type:DevtoolsRCode) {
+        project.task('rPackageCleanVignettes', type:PackageRCode) {
             description = 'This uses a fairly rudimentary algorithm where any files in inst/doc with a name that exists in vignettes are removed'
             expression = 'devtools::clean_vignettes()'
         }
+
         project.task('rPackageInit', type:DevtoolsRCode) {
-            description = 'Initialize R package'
-            expression = "devtools::create('.'); devtools::use_readme_md(); devtools::use_testthat()"
+            description = 'Initialize R package in empty directory'
+            def name = project.rpackage.name.get()
+            println("Package name is $name")
+            expression = "devtools::setup(description=list(Package=\'$name\'));devtools::use_readme_md();devtools::use_testthat();devtools::use_vignette(\'$name\')"
+
         }
-        
-        project.task('rPackageBuild', type:DevtoolsRCode) {
+
+
+        project.task('rPackageBuild', type:PackageRCode) {
             description = 'Builds a package file from package sources'
-            expression = 'devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'build\')'
+            def desc  = project.rpackage.dest.get()
+            println("Dssc dir of build is $desc")
+            expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
         }
 
-        project.task('rPackageBuildWin', type:DevtoolsRCode) {
+        project.task('rPackageBuildWin', type:PackageRCode) {
             description = 'Bundling source package, and then uploading to http://win-builder.r-project.org/'
-            expression = 'devtools::build_win()'
+            def desc  = project.rpackage.dest.get()
+            println("Dssc dir of build is $desc")
+            expression = "devtools::build_win(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
         }
 
-        project.task('rPackageBuildVignettes', type:DevtoolsRCode) {
+        project.task('rPackageBuildVignettes', type:PackageRCode) {
             description = 'Builds package vignettes using the same algorithm that R CMD build does. This means including non-Sweave vignettes, using makefiles (if present), and copying over extra files'
             expression = 'devtools::build_vignettes()'
         }
 
-        project.task('rPackageDocument', type:DevtoolsRCode) {
+        project.task('rPackageDocument', type:PackageRCode) {
             description = 'Build all documentation for a package'
             expression = 'devtools::document()'
 
         }
 
-        project.task('rPackageTest', type:DevtoolsRCode) {
+        project.task('rPackageTest', type:TestedPackageRCode) {
             description = 'Reloads package code then runs all testthat tests'
             expression = 'devtools::test(reporter=testthat::TeamcityReporter)'
-            onlyIf {
-                new File("${project.r.src.get()}/inst/tests").exists() && new File("${project.r.src.get()}/tests/testthat").exists()
-            }
+
 
         }
-        project.task('rPackageTestCoverage', type:DevtoolsRCode) {
+        project.task('rPackageTestCoverage', type:TestedPackageRCode) {
             description = 'Runs test coverage on your package'
-            expression = 'devtools::test_coverage()'
+            def desc  = project.rpackage.dest.get()
+            println("Dssc dir of build is $desc")
+            expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$desc\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
         }
-        project.task('rPackageCheck', type:DevtoolsRCode) {
+        project.task('rPackageCheck', type:PackageRCode) {
             description = 'Updates the package documentation, then builds and checks the package locally.'
             expression = 'devtools::check()'
 
         }
-        project.task('rPackageRelease', type:DevtoolsRCode) {
+        project.task('rPackageRelease', type:PackageRCode) {
             description = 'Updates the package documentation, then builds and checks the package locally.'
             expression = 'devtools::release()'
         }
 
-        project.task('rPackageSubmitCran', type:DevtoolsRCode) {
+        project.task('rPackageSubmitCran', type:PackageRCode) {
             description = 'This uses the new CRAN web-form submission process. After submission, you will receive an email asking you to confirm submission\n'+
                     '- this is used to check that the package is submitted by the maintainer.'
             expression = 'devtools::submit_cran()'
         }
 
-        project.task('rPackageSpellCheck', type:DevtoolsRCode) {
+        project.task('rPackageSpellcheck', type:DevtoolsRCode) {
             description = 'Runs a spell check on text fields in the package description file, manual pages, and optionally\n' +
                     'vignettes. Wraps the spelling package.'
             expression = 'devtools::spell_check()'
         }
 
-        project.task('rPackageLint', type:DevtoolsRCode) {
+        project.task('rPackageLint', type:PackageRCode) {
             description = 'The default linters correspond to the style guide at http://r-pkgs.had.co.nz/r.html#style,\n' +
                     'however it is possible to override any or all of them using the linters paramete'
-            expression = 'devtools::lint()'
+            def lintTypes = project.rpackage.lintTypes.get()
+            def desc  = project.rpackage.dest.get()
+            println("Dssc dir of build is $desc")
+            expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$desc\',\'lint-report.html\'),winslash=\'/\'))"
         }
 
         project.task('rPackageUseBuildIgnoreGradle', type:DevtoolsRCode) {
             description = 'Adds gradle files into .Rbuildignore file'
-            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\',\'tests/\',\'packrat/\',\'gradle.properties\'),escape=FALSE)'
+            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\',\'tests/\',\'packrat/\',\'gradle.properties\',\'.*report.html$\'),escape=FALSE)'
         }
 
         
-        project.task('rPackageVersion', type:DevtoolsRCode) {
+        project.task('rPackageVersion', type:PackageRCode) {
             description = 'Sets version of R package'
-            def versionRelease = 0.0.1
+            def versionRelease = '0.0.1'
             expression = "x=read.dcf('DESCRIPTION');x[,'Version']='" + versionRelease + "';write.dcf(x,file='DESCRIPTION')"
         }
         
@@ -144,7 +163,8 @@ class RPlugin implements Plugin<Project> {
              expression = "tools::write_PACKAGES(\'$destLocalRepoPath\',type=\'source\',verbose=TRUE,subdirs=FALSE,addFiles=TRUE)"
         }
         
-        
+
+        /*
          project.task('rRepoCopy',  type:Copy) {
             def distPath = ""
             def destLocalRepoPath = ""
@@ -159,23 +179,22 @@ class RPlugin implements Plugin<Project> {
          project.task('rRepoArchive') {
             println "It should archive old packages"
          }
+        */
         
-        
-        project.task('rPackageBuildUnzip') {
-            def buildDir = ""
-            def unzippedDir = ""
-            FileTree tree = fileTree(dir: "$buildDir")
+        project.task('rPackageBuildUnzip', type:Copy ) {
+            group = 'rbase'
+            def dest = project.rpackage.dest.get()
+            def unzipDir = project.rpackage.unzipDir.get()
+            FileTree tree = project.fileTree(dir: "$dest")
             tree.include "*.tar.gz"
-            tree.each { File file -> println "tar.gz file:  $file"}
+            tree.each { File file -> println "tar.gz file:  $file" }
             if (!tree.isEmpty()) {
-                def fileToUnzip  = tree.getAt(-1)
-                println "unzip file $fileToUnzip into $unzippedDir"
-                copy {
-                    from tarTree(resources.gzip("$fileToUnzip"))
-                    into unzippedDir
-                }
-            }else {
-                println "There is not file in $buildDir for pattern $prefixModelName"
+                def fileToUnzip = tree.getAt(-1)
+                println "unzip file $fileToUnzip into $unzipDir"
+                from tarTree(resources.gzip("$fileToUnzip"))
+                into unzipDir
+            } else {
+                println "There is not file in $buildDir"
             }
         }
         
@@ -207,12 +226,24 @@ class RPackagePluginExtension extends RPluginExtension {
     final Property<String> name     // name of package
     final Property<String> unzipDir // for unzipping r package after build
     final Property<String> version // version of package
-    
-    
+    final Property<String> lintTypes
+
     RPackagePluginExtension(Project project) {
         super(project)
         dest = project.objects.property(String)
-        dest.set('.')
+        dest.set('..')
+
+        unzipDir = project.objects.property(String)
+        unzipDir.set('./unzip')
+
+        name = project.objects.property(String)
+        name.set(new File(System.getProperty("user.dir")).getName())
+
+        version = project.objects.property(String)
+        version.set('0.0.1')
+
+        lintTypes = project.objects.property(String)
+        lintTypes.set("'warning','error','style'")
     }
 }
 
@@ -220,7 +251,8 @@ class RRepositoryPluginExtension {
     final Property<String> local //location of local repository
         
     RRepositoryPluginExtension(Project project) {
-    
+        local = project.objects.property(String)
+        local.set('../Repository')
     }
 }
 
