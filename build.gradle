@@ -6,6 +6,7 @@ plugins {
     id 'ivy-publish'
     id 'signing'
     id 'maven'
+    id "org.sonarqube" version "2.6"
 }
 
 repositories {
