@@ -2,7 +2,14 @@
 
 [![Join the chat at https://gitter.im/gradle-R-plugin/community](https://badges.gitter.im/gradle-R-plugin/community.svg)](https://gitter.im/gradle-R-plugin/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.com/arekbee/gradle-R-plugin.svg?branch=master)](https://travis-ci.com/arekbee/gradle-R-plugin)
+[![Build status](https://ci.appveyor.com/api/projects/status/agg9on9mydpl19e1?svg=true)](https://ci.appveyor.com/project/arekbee/gradle-r-plugin)
 
+[![Sonar Cloud Status](https://sonarcloud.io/api/project_badges/measure?project=com.ca.apim.gateway%3Agateway-developer-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.ca.apim.gateway%3Agateway-developer-plugin)
+
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.arekbee/gradle-R-plugin.svg)](https://search.maven.org/artifact/com.github.arekbee/gradle-R-plugin)
+[![Gradle Plugin](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/github/arekbee/gradle-R-plugin/com.github.arekbee.gradle-R-plugin/maven-metadata.xml.svg?label=gradle-plugin)](https://plugins.gradle.org/plugin/com.github.arekbee.gradle-R-plugin)
+
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/arekbee/gradle-R-plugin.svg?columns=all)](https://waffle.io/arekbeey/gradle-R-plugin)
 
 This Gradle plugin provides tasks to build and deploy R scripts and packages.
 
