@@ -17,3 +17,5 @@ cache:
 before_install:
   - gradle --version
   - git ls-tree HEAD
+  - echo "nexusUsername=arekbee" >> ~/.gradle/gradle.properties
+  - echo "nexusPassword=" >> ~/.gradle/gradle.properties
