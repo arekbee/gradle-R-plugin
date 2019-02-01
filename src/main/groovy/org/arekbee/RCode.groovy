@@ -105,8 +105,6 @@ class TestedPackageRCode extends  PackageRCode {
     }
 }
 
-
-
 class PackratRCode extends RCode {
     PackratRCode() {
         group = "packrat"
