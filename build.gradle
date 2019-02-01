@@ -29,7 +29,7 @@ group = 'com.github.arekbee'
 version = '0.4'
 def pluginName = 'gradle-R-plugin'
 def pluginDescription = 'Gradle R plugin for R projects and packages'
-def website = 'https://github.com/arekbee/gradle-R-plugin'
+def packageWebsite = 'https://github.com/arekbee/gradle-R-plugin'
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     classifier = 'sources'
@@ -57,7 +57,7 @@ gradlePlugin {
 }
 
 pluginBundle {
-    website = website
+    website = packageWebsite
     vcsUrl = 'https://github.com/arekbee/gradle-R-plugin'
     description = pluginDescription
     tags = ['R', 'RStudio', pluginName ]
@@ -121,12 +121,12 @@ uploadArchives {
                 packaging 'jar'
                 // optionally artifactId can be defined here
                 description pluginDescription
-                url website
+                url packageWebsite
 
                 scm {
-                    connection website
-                    developerConnection website
-                    url website
+                    connection packageWebsite
+                    developerConnection packageWebsite
+                    url packageWebsite
                 }
 
                 licenses {
@@ -154,5 +154,5 @@ task RunIt {
     dependsOn publish
     dependsOn test
     dependsOn uploadArchives
-    
+
 }
