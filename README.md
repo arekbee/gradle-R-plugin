@@ -1,6 +1,8 @@
 #  Gradle R plugin
 
 [![Join the chat at https://gitter.im/gradle-R-plugin/community](https://badges.gitter.im/gradle-R-plugin/community.svg)](https://gitter.im/gradle-R-plugin/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.com/arekbee/gradle-R-plugin.svg?branch=master)](https://travis-ci.com/arekbee/gradle-R-plugin)
+
 
 This Gradle plugin provides tasks to build and deploy R scripts and packages.
 
