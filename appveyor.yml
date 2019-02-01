@@ -8,7 +8,7 @@ before_build:
   - java -version -Xmx32m
 
 build_script:
-  - gradlew.bat assemble -s
+  - gradlew.bat assemble -s --debug -PnexusUsername="arekbee" -PnexusPassword=""
 
 test_script:
-  - gradlew.bat check
+  - gradlew.bat check --debug -PnexusUsername="arekbee" -PnexusPassword=""
