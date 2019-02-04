@@ -8,7 +8,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=arekbee_gradle-R-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=arekbee_gradle-R-plugin)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.arekbee/gradle-R-plugin.svg)](https://search.maven.org/artifact/com.github.arekbee/gradle-R-plugin)
 [![Gradle Plugin](https://img.shields.io/maven-metadata/v/https/plugins.gradle.org/m2/com/github/arekbee/gradle-R-plugin/com.github.arekbee.gradle-R-plugin.gradle.plugin/maven-metadata.xml.svg?label=gradle-plugin)](https://plugins.gradle.org/plugin/com.github.arekbee.gradle-R-plugin)
-
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3e58bf0480a1412ba241f05823689abe)](https://www.codacy.com/app/arekbee/gradle-R-plugin?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=arekbee/gradle-R-plugin&amp;utm_campaign=Badge_Grade)
 
 This Gradle plugin provides tasks to build and deploy R scripts and packages.
 
