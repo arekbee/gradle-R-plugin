@@ -19,11 +19,15 @@ import org.arekbee.RCode
 import org.arekbee.DevtoolsRCode
 import org.arekbee.PackratRCode
 import org.gradle.api.tasks.Copy
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 class RPlugin implements Plugin<Project> {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     void apply(Project project) {
-        println("in RPlugin.apply : ${project}")
+        logger.debug("in RPlugin.apply for: ${project}")
 
         project.extensions.create("rpackage",RPackagePluginExtension, project)
         project.extensions.create("r",RPluginExtension, project)
@@ -72,7 +76,7 @@ class RPlugin implements Plugin<Project> {
         project.task('rPackageInit', type:DevtoolsRCode) {
             description = 'Initialize R package in empty directory'
             def name = project.rpackage.name.get()
-            println("Package name is $name")
+            logger.debug("Package name is $name")
             expression = "devtools::setup(description=list(Package=\'$name\'));devtools::use_readme_md();devtools::use_testthat();devtools::use_vignette(\'$name\')"
 
         }
@@ -81,14 +85,14 @@ class RPlugin implements Plugin<Project> {
         project.task('rPackageBuild', type:PackageRCode) {
             description = 'Builds a package file from package sources'
             def desc  = project.rpackage.dest.get()
-            println("Dssc dir of build is $desc")
+            logger.debug("Dssc dir of build is $desc")
             expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
         }
 
         project.task('rPackageBuildWin', type:PackageRCode) {
             description = 'Bundling source package, and then uploading to http://win-builder.r-project.org/'
             def desc  = project.rpackage.dest.get()
-            println("Dssc dir of build is $desc")
+            logger.debug("Dssc dir of build is $desc")
             expression = "devtools::build_win(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
         }
 
@@ -112,7 +116,7 @@ class RPlugin implements Plugin<Project> {
         project.task('rPackageTestCoverage', type:TestedPackageRCode) {
             description = 'Runs test coverage on your package'
             def desc  = project.rpackage.dest.get()
-            println("Dssc dir of build is $desc")
+            logger.debug("Dssc dir of build is $desc")
             expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$desc\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
         }
         project.task('rPackageCheck', type:PackageRCode) {
@@ -142,7 +146,7 @@ class RPlugin implements Plugin<Project> {
                     'however it is possible to override any or all of them using the linters paramete'
             def lintTypes = project.rpackage.lintTypes.get()
             def desc  = project.rpackage.dest.get()
-            println("Dssc dir of build is $desc")
+            logger.debug("Dssc dir of build is $desc")
             expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$desc\',\'lint-report.html\'),winslash=\'/\'))"
         }
 
@@ -168,7 +172,7 @@ class RPlugin implements Plugin<Project> {
          project.task('rRepoCopy',  type:Copy) {
             def distPath = ""
             def destLocalRepoPath = ""
-            println "Copy files from $distPath to $destLocalRepoPath repo"
+            logger.debug "Copy files from $distPath to $destLocalRepoPath repo"
             from distPath
             include '*.tar.gz'
             into destLocalRepoPath
@@ -177,7 +181,7 @@ class RPlugin implements Plugin<Project> {
         
         
          project.task('rRepoArchive') {
-            println "It should archive old packages"
+            logger.debug "It should archive old packages"
          }
 
         
@@ -190,11 +194,11 @@ class RPlugin implements Plugin<Project> {
             tree.each { File file -> println "tar.gz file:  $file" }
             if (!tree.isEmpty()) {
                 def fileToUnzip = tree.getAt(-1)
-                println "unzip file $fileToUnzip into $unzipDir"
+                logger.debug "unzip file $fileToUnzip into $unzipDir"
                 from tarTree(resources.gzip("$fileToUnzip"))
                 into unzipDir
             } else {
-                println "There is not file in $buildDir"
+                logger.debug "There is not file in $buildDir"
             }
         }
         */

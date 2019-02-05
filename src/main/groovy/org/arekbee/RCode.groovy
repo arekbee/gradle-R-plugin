@@ -5,9 +5,13 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Input
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 
 class RTask extends DefaultTask {
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Optional @Input
     String src
     RTask() {
@@ -16,7 +20,7 @@ class RTask extends DefaultTask {
     }
 
     def checkSrc() {
-        println("Checking src on value $src")
+        logger.debug("Checking src on value $src")
         def dir = new File(src)
         if (!dir.exists()) {
             dir.mkdir()
@@ -45,13 +49,13 @@ class RCode extends RTask {
 
     @TaskAction
     def exec() {
-        println("r ${project.r.src} rpackage: ${project.rpackage.src}")
+        logger.info("r ${project.r.src} rpackage: ${project.rpackage.src}")
 
         interpreter = interpreter ?:  project.r.interpreter.get()
         src = src ?: project.r.src.get()
         preArgs = preArgs ?: project.r.preArgs.get()
 
-        println("Src is $src")
+        logger.info("Src is $src")
         def cmdargs = [interpreter]
         if (preArgs != null)
         {
@@ -66,14 +70,14 @@ class RCode extends RTask {
             cmdargs.add("-e")
             cmdargs.add(expression)
         }else if (file != null){
-            println("Running file: ${file} path: ${file.getAbsolutePath()}")
+            logger.info("Running file: ${file} path: ${file.getAbsolutePath()}")
             cmdargs.add("-f")
             cmdargs.add(file.getAbsolutePath())
         }
 
-        println("Before checking src")
+        logger.debug("Before checking src")
         checkSrc()
-        println("After checking src")
+        logger.debug("After checking src")
         project.exec {
             workingDir src
             commandLine cmdargs
