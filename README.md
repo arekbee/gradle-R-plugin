@@ -29,7 +29,7 @@ gradle init
 In your R project, add the following plugin declaration to your build.gradle file:
 ``` groove
 plugins {
-  id "com.github.arekbee.gradle-R-plugin" version "0.3"
+  id "com.github.arekbee.gradle-R-plugin" version "0.6"
 }
 ```
 
@@ -42,7 +42,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.github.arekbee:gradle-R-plugin:0.3"
+    classpath "com.github.arekbee:gradle-R-plugin:0.6"
   }
 }
 
@@ -70,7 +70,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.github.arekbee:gradle-R-plugin:0.3'
+    classpath 'com.github.arekbee:gradle-R-plugin:0.6'
   }
 }
 ```
