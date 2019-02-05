@@ -6,6 +6,7 @@ plugins {
     id 'ivy-publish'
     id 'maven'
     id "org.sonarqube" version "2.6"
+    id "jacoco"
 }
 
 
@@ -15,6 +16,8 @@ if (project.hasProperty("signing.keyId")) {
         sign configurations.archives
     }
 }
+
+
 
 
 repositories {
@@ -147,6 +150,25 @@ uploadArchives {
         }
     }
 }
+
+
+jacoco {
+    toolVersion = "0.8.1"
+    reportsDir = file("$buildDir/customJacocoReportDir")
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination file("${buildDir}/jacocoHtml")
+
+    }
+    additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+}
+
+test.finalizedBy(jacocoTestReport)
+
 
 
 task runIt {
