@@ -206,4 +206,5 @@ task publishItToPublic {
     dependsOn publishItToLocal
     dependsOn uploadArchives
     dependsOn publishPlugins
+    dependsOn publishSite
 }
