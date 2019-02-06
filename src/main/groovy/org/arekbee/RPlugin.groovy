@@ -60,7 +60,8 @@ class RPlugin implements Plugin<Project> {
             expression = 'packrat::status()'
         }
         
-        project.task('rPackratInit', type:PackratRCode) {
+        project.task('rPackratInit', type:RCode) {
+            group = 'packrat'
             expression = 'packrat::init()'
         }
         
