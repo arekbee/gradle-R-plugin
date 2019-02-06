@@ -7,6 +7,8 @@ plugins {
     id 'maven'
     id "org.sonarqube" version "2.6"
     id "jacoco"
+    id "com.stehno.gradle.site" version "0.0.3"
+    id "org.asciidoctor.convert" version "2.0-alpha.5"
 }
 
 
@@ -18,6 +20,20 @@ if (project.hasProperty("signing.keyId")) {
 }
 
 
+tasks.site.dependsOn = ['build', 'jacocoTestReport', 'groovydoc', 'asciidoctor']
+
+asciidoctor {
+    sourceDir = file('docs')
+    sources {
+        include 'toplevel.adoc', 'another.adoc', 'third.adoc'
+    }
+    outputDir = file('build/docs')
+}
+
+task publishSite(type: GradleBuild, group: 'Publishing', description: 'Publishes the documentation web site.', dependsOn: ['site']) {
+    buildFile = 'publish.gradle'
+    tasks = ['publishGhPages']
+}
 
 
 repositories {
@@ -33,6 +49,7 @@ version = '0.7'
 def pluginName = 'gradle-R-plugin'
 def pluginDescription = 'Gradle R plugin for R projects and packages'
 def packageWebsite = 'https://github.com/arekbee/gradle-R-plugin'
+
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     classifier = 'sources'
