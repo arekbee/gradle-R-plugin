@@ -1,4 +1,4 @@
-package org.arekbee
+package com.github.arekbee
 
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
@@ -15,9 +15,9 @@ import org.gradle.api.tasks.Exec
 
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.initialization.LoadProjectsBuildOperationType
-import org.arekbee.RCode
-import org.arekbee.DevtoolsRCode
-import org.arekbee.PackratRCode
+import com.github.arekbee.RCode
+import com.github.arekbee.DevtoolsRCode
+import com.github.arekbee.PackratRCode
 import org.gradle.api.tasks.Copy
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

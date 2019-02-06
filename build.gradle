@@ -29,7 +29,7 @@ repositories {
 }
 
 group = 'com.github.arekbee'
-version = '0.6'
+version = '0.7'
 def pluginName = 'gradle-R-plugin'
 def pluginDescription = 'Gradle R plugin for R projects and packages'
 def packageWebsite = 'https://github.com/arekbee/gradle-R-plugin'
@@ -54,7 +54,7 @@ gradlePlugin {
     plugins {
         rPlugin  {
             id = "com.github.arekbee.${pluginName}"
-            implementationClass = 'org.arekbee.RPlugin'
+            implementationClass = 'com.github.arekbee.RPlugin'
         }
     }
 }

@@ -138,7 +138,7 @@ After setting the R plugin, you can now run commands like ./gradlew version in t
 
 It is possible to write your own custom tasks. We need to import RCode:
 ``` groove
-import org.arekbee.RCode
+import com.github.arekbee.RCode
 ```
 
 ### Simple custom task:

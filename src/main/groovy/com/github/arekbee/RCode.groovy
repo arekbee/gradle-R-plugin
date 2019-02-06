@@ -1,4 +1,4 @@
-package org.arekbee
+package com.github.arekbee
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction

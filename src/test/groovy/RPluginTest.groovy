@@ -1,4 +1,4 @@
-import org.arekbee.RCode
+import com.github.arekbee.RCode
 import org.gradle.api.Project
 import org.gradle.internal.impldep.org.junit.Test
 

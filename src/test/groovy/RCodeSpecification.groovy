@@ -2,7 +2,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import spock.lang.Specification
 import spock.lang.Subject
-import org.arekbee.RCode
+import com.github.arekbee.RCode
 import org.gradle.testfixtures.ProjectBuilder
 
 class RCodeSpecification extends Specification {
