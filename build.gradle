@@ -8,7 +8,9 @@ plugins {
     id "org.sonarqube" version "2.6"
     id "jacoco"
     id "com.stehno.gradle.site" version "0.0.3"
-    id "org.asciidoctor.convert" version "2.0-alpha.5"
+    //id "org.asciidoctor.convert" version "2.0-alpha.5"
+    id "com.dorongold.task-tree" version "1.3.1"
+    id 'org.asciidoctor.gradle.asciidoctor' version '1.5.1'
 }
 
 
@@ -45,7 +47,7 @@ repositories {
 }
 
 group = 'com.github.arekbee'
-version = '0.7'
+version = '0.9'
 def pluginName = 'gradle-R-plugin'
 def pluginDescription = 'Gradle R plugin for R projects and packages'
 def packageWebsite = 'https://github.com/arekbee/gradle-R-plugin'
@@ -184,7 +186,9 @@ jacocoTestReport {
     additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
 }
 
+
 test.finalizedBy(jacocoTestReport)
+
 
 
 
@@ -193,18 +197,20 @@ task runIt {
     dependsOn check
     dependsOn build
     dependsOn test
+    dependsOn buildEnvironment
 }
 
 task publishItToLocal {
     group ='simple'
     dependsOn runIt
     dependsOn publish
+
 }
 
 task publishItToPublic {
     group ='simple'
     dependsOn publishItToLocal
     dependsOn uploadArchives
-    dependsOn publishPlugins
-    dependsOn publishSite
+    //dependsOn publishPlugins
+    //dependsOn publishSite
 }

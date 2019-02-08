@@ -9,4 +9,5 @@ githubPages {
             into '.'
         }
     }
+    deleteExistingFiles = true
 }

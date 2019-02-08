@@ -34,24 +34,25 @@ class RPlugin implements Plugin<Project> {
         project.extensions.create("rrepo", RRepositoryPluginExtension, project)
 
 
-        project.task('rhome', type:RCode) {
-            expression = "R.home()"
-        }
-
         project.task('rgetwd', type:RCode) {
             expression = "getwd()"
         }
 
-        project.task('rInstallPackages', type:RCode) {
-            def packagesList = "'DT','devtools','sessioninfo','covr','testthat','packrat','rversions','hunspell','xtable'"
-            description = 'Installs R packages which are required for gradle-R-plugin like $packagesList'
-            expression = "install.packages(c($packagesList))"
+        project.task('rhome', type:RCode) {
+            expression = "R.home()"
         }
 
         project.task('rSessionInfo', type:RCode) {
             description = 'Print version information about R, the OS and attached or loaded packages.'
-            expression = 'sessioninfo::sessionInfo()'
+            expression = 'sessionInfo()'
         }
+
+        project.task('rInstallPackages', type:RCode) {
+            def packagesList = "'DT','devtools','sessioninfo','covr','testthat','packrat','rversions','hunspell','xtable', 'roxygen2', 'lintr'"
+            description = 'Installs R packages which are required for gradle-R-plugin like $packagesList'
+            expression = "install.packages(c($packagesList))"
+        }
+
 
         project.task('rPackratRestore', type:PackratRCode) {
             expression = 'packrat::restore()'
@@ -83,48 +84,65 @@ class RPlugin implements Plugin<Project> {
         }
 
 
-        project.task('rPackageBuild', type:PackageRCode) {
+
+        def rPackageDocument = project.task('rPackageDocument', type:PackageRCode) {
+            description = 'Build all documentation for a package'
+            expression = 'devtools::document()'
+
+        }
+
+        def rPackageTest = project.task('rPackageTest', type:TestedPackageRCode) {
+            description = 'Reloads package code then runs all testthat tests'
+            expression = 'devtools::test(reporter=testthat::TeamcityReporter)'
+        }
+
+
+        def rPackageTestCoverage = project.task('rPackageTestCoverage', type:TestedPackageRCode) {
+            description = 'Runs test coverage on your package'
+            def desc  = project.rpackage.dest.get()
+            logger.debug("Dssc dir of build is $desc")
+            expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$desc\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
+        }.dependsOn(rPackageTest)
+
+
+        def rPackageLint = project.task('rPackageLint', type:PackageRCode) {
+            description = 'The default linters correspond to the style guide at http://r-pkgs.had.co.nz/r.html#style,\n' +
+                    'however it is possible to override any or all of them using the linters paramete'
+            def lintTypes = project.rpackage.lintTypes.get()
+            def desc  = project.rpackage.dest.get()
+            logger.debug("Dssc dir of build is $desc")
+            expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$desc\',\'lint-report.html\'),winslash=\'/\'))"
+        }.dependsOn(rPackageDocument)
+
+
+        def rPackageCheck = project.task('rPackageCheck', type:PackageRCode) {
+            description = 'Updates the package documentation, then builds and checks the package locally.'
+            expression = 'devtools::check()'
+        }
+
+
+        def rPackageBuildVignettes = project.task('rPackageBuildVignettes', type:PackageRCode) {
+            description = 'Builds package vignettes using the same algorithm that R CMD build does. This means including non-Sweave vignettes, using makefiles (if present), and copying over extra files'
+            expression = 'devtools::build_vignettes()'
+        }
+
+        def rPackageBuild = project.task('rPackageBuild', type:PackageRCode) {
             description = 'Builds a package file from package sources'
             def desc  = project.rpackage.dest.get()
             logger.debug("Dssc dir of build is $desc")
             expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
-        }
+        }.dependsOn(rPackageDocument, rPackageCheck, rPackageBuildVignettes, rPackageTestCoverage, rPackageLint)
+
 
         project.task('rPackageBuildWin', type:PackageRCode) {
             description = 'Bundling source package, and then uploading to http://win-builder.r-project.org/'
             def desc  = project.rpackage.dest.get()
             logger.debug("Dssc dir of build is $desc")
             expression = "devtools::build_win(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
-        }
-
-        project.task('rPackageBuildVignettes', type:PackageRCode) {
-            description = 'Builds package vignettes using the same algorithm that R CMD build does. This means including non-Sweave vignettes, using makefiles (if present), and copying over extra files'
-            expression = 'devtools::build_vignettes()'
-        }
-
-        project.task('rPackageDocument', type:PackageRCode) {
-            description = 'Build all documentation for a package'
-            expression = 'devtools::document()'
-
-        }
-
-        project.task('rPackageTest', type:TestedPackageRCode) {
-            description = 'Reloads package code then runs all testthat tests'
-            expression = 'devtools::test(reporter=testthat::TeamcityReporter)'
+        }.dependsOn(rPackageBuild)
 
 
-        }
-        project.task('rPackageTestCoverage', type:TestedPackageRCode) {
-            description = 'Runs test coverage on your package'
-            def desc  = project.rpackage.dest.get()
-            logger.debug("Dssc dir of build is $desc")
-            expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$desc\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
-        }
-        project.task('rPackageCheck', type:PackageRCode) {
-            description = 'Updates the package documentation, then builds and checks the package locally.'
-            expression = 'devtools::check()'
 
-        }
         project.task('rPackageRelease', type:PackageRCode) {
             description = 'Updates the package documentation, then builds and checks the package locally.'
             expression = 'devtools::release()'
@@ -142,14 +160,7 @@ class RPlugin implements Plugin<Project> {
             expression = 'devtools::spell_check()'
         }
 
-        project.task('rPackageLint', type:PackageRCode) {
-            description = 'The default linters correspond to the style guide at http://r-pkgs.had.co.nz/r.html#style,\n' +
-                    'however it is possible to override any or all of them using the linters paramete'
-            def lintTypes = project.rpackage.lintTypes.get()
-            def desc  = project.rpackage.dest.get()
-            logger.debug("Dssc dir of build is $desc")
-            expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$desc\',\'lint-report.html\'),winslash=\'/\'))"
-        }
+
 
         project.task('rPackageUseBuildIgnoreGradle', type:DevtoolsRCode) {
             description = 'Adds gradle files into .Rbuildignore file'
