@@ -34,153 +34,155 @@ class RPlugin implements Plugin<Project> {
         project.extensions.create("rrepo", RRepositoryPluginExtension, project)
 
 
-        project.task('rgetwd', type:RCode) {
+        project.task('rgetwd', type: RCode) {
             expression = "getwd()"
         }
 
-        project.task('rhome', type:RCode) {
+        project.task('rhome', type: RCode) {
             expression = "R.home()"
         }
 
-        project.task('rSessionInfo', type:RCode) {
+        project.task('rSessionInfo', type: RCode) {
             description = 'Print version information about R, the OS and attached or loaded packages.'
             expression = 'sessionInfo()'
         }
 
-        project.task('rInstallPackages', type:RCode) {
+        project.task('rInstallPackages', type: RCode) {
             def packagesList = "'DT','devtools','sessioninfo','covr','testthat','packrat','rversions','hunspell','xtable', 'roxygen2', 'lintr'"
             description = 'Installs R packages which are required for gradle-R-plugin like $packagesList'
             expression = "install.packages(c($packagesList))"
         }
 
-
-        project.task('rPackratRestore', type:PackratRCode) {
+        project.task('rPackratRestore', type: PackratRCode) {
             expression = 'packrat::restore()'
         }
-        project.task('rPackratStatus', type:PackratRCode) {
+        project.task('rPackratStatus', type: PackratRCode) {
             expression = 'packrat::status()'
         }
-        
-        project.task('rPackratInit', type:RCode) {
+
+        project.task('rPackratInit', type: RCode) {
             group = 'packrat'
             expression = 'packrat::init()'
         }
-        
-        project.task('rPackratSnapshot', type:PackratRCode) {
+
+        project.task('rPackratSnapshot', type: PackratRCode) {
             expression = 'packrat::.snapshotImpl(snapshot.sources=FALSE,\'.\')'
         }
-        
-        project.task('rPackageCleanVignettes', type:PackageRCode) {
+
+        project.task('rPackageCleanVignettes', type: PackageRCode) {
             description = 'This uses a fairly rudimentary algorithm where any files in inst/doc with a name that exists in vignettes are removed'
             expression = 'devtools::clean_vignettes()'
         }
 
-        project.task('rPackageInit', type:DevtoolsRCode) {
-            description = 'Initialize R package in empty directory'
-            def name = project.rpackage.name.get()
-            logger.debug("Package name is $name")
-            expression = "devtools::setup(description=list(Package=\'$name\'));devtools::use_readme_md();devtools::use_testthat();devtools::use_vignette(\'$name\')"
-
-        }
-
-
-
-        def rPackageDocument = project.task('rPackageDocument', type:PackageRCode) {
+        def rPackageDocument = project.task('rPackageDocument', type: PackageRCode) {
             description = 'Build all documentation for a package'
             expression = 'devtools::document()'
-
         }
 
-        def rPackageTest = project.task('rPackageTest', type:TestedPackageRCode) {
+        def rPackageTest = project.task('rPackageTest', type: TestedPackageRCode) {
             description = 'Reloads package code then runs all testthat tests'
             expression = 'devtools::test(reporter=testthat::TeamcityReporter)'
         }
 
-
-        def rPackageTestCoverage = project.task('rPackageTestCoverage', type:TestedPackageRCode) {
-            description = 'Runs test coverage on your package'
-            def desc  = project.rpackage.dest.get()
-            logger.debug("Dssc dir of build is $desc")
-            expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$desc\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
-        }.dependsOn(rPackageTest)
-
-
-        def rPackageLint = project.task('rPackageLint', type:PackageRCode) {
-            description = 'The default linters correspond to the style guide at http://r-pkgs.had.co.nz/r.html#style,\n' +
-                    'however it is possible to override any or all of them using the linters paramete'
-            def lintTypes = project.rpackage.lintTypes.get()
-            def desc  = project.rpackage.dest.get()
-            logger.debug("Dssc dir of build is $desc")
-            expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$desc\',\'lint-report.html\'),winslash=\'/\'))"
-        }.dependsOn(rPackageDocument)
-
-
-        def rPackageCheck = project.task('rPackageCheck', type:PackageRCode) {
+        def rPackageCheck = project.task('rPackageCheck', type: PackageRCode) {
             description = 'Updates the package documentation, then builds and checks the package locally.'
             expression = 'devtools::check()'
         }
 
-
-        def rPackageBuildVignettes = project.task('rPackageBuildVignettes', type:PackageRCode) {
+        def rPackageBuildVignettes = project.task('rPackageBuildVignettes', type: PackageRCode) {
             description = 'Builds package vignettes using the same algorithm that R CMD build does. This means including non-Sweave vignettes, using makefiles (if present), and copying over extra files'
             expression = 'devtools::build_vignettes()'
         }
 
-        def rPackageBuild = project.task('rPackageBuild', type:PackageRCode) {
-            description = 'Builds a package file from package sources'
-            def desc  = project.rpackage.dest.get()
-            logger.debug("Dssc dir of build is $desc")
-            expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
-        }.dependsOn(rPackageDocument, rPackageCheck, rPackageBuildVignettes, rPackageTestCoverage, rPackageLint)
-
-
-        project.task('rPackageBuildWin', type:PackageRCode) {
-            description = 'Bundling source package, and then uploading to http://win-builder.r-project.org/'
-            def desc  = project.rpackage.dest.get()
-            logger.debug("Dssc dir of build is $desc")
-            expression = "devtools::build_win(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$desc\')"
-        }.dependsOn(rPackageBuild)
-
-
-
-        project.task('rPackageRelease', type:PackageRCode) {
+        project.task('rPackageRelease', type: PackageRCode) {
             description = 'Updates the package documentation, then builds and checks the package locally.'
             expression = 'devtools::release()'
         }
 
-        project.task('rPackageSubmitCran', type:PackageRCode) {
-            description = 'This uses the new CRAN web-form submission process. After submission, you will receive an email asking you to confirm submission\n'+
+        project.task('rPackageSubmitCran', type: PackageRCode) {
+            description = 'This uses the new CRAN web-form submission process. After submission, you will receive an email asking you to confirm submission\n' +
                     '- this is used to check that the package is submitted by the maintainer.'
             expression = 'devtools::submit_cran()'
         }
 
-        project.task('rPackageSpellcheck', type:DevtoolsRCode) {
+        project.task('rPackageSpellcheck', type: DevtoolsRCode) {
             description = 'Runs a spell check on text fields in the package description file, manual pages, and optionally\n' +
                     'vignettes. Wraps the spelling package.'
             expression = 'devtools::spell_check()'
         }
 
-
-
-        project.task('rPackageUseBuildIgnoreGradle', type:DevtoolsRCode) {
+        project.task('rPackageUseBuildIgnoreGradle', type: DevtoolsRCode) {
             description = 'Adds gradle files into .Rbuildignore file'
             expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\',\'tests/\',\'packrat/lib*\',\'packrat/src*\',\'gradle.properties\',\'.*report.html$\'),escape=FALSE)'
         }
 
-        
-        project.task('rPackageVersion', type:PackageRCode) {
-            description = 'Sets version of R package'
-            def versionRelease = '0.0.1'
-            expression = "x=read.dcf('DESCRIPTION');x[,'Version']='" + versionRelease + "';write.dcf(x,file='DESCRIPTION')"
-        }
-        
-         project.task('rRepoWritePackagesFile',  type:RCode) {
-             def destLocalRepoPath = ""
-             expression = "tools::write_PACKAGES(\'$destLocalRepoPath\',type=\'source\',verbose=TRUE,subdirs=FALSE,addFiles=TRUE)"
-        }
-        
+        project.afterEvaluate {
+            def rPackageDest = project.task('rPackageDest', type:RTask) {
+                description ="Creates destination/build folder. By default it is '..'"
+                def src = project.r.src.get()
+                def dest = project.rpackage.dest.get()
+                def destFolder = new File(src, dest)
+                if (!destFolder.exists()){
+                    logger.warn("Desc folder ${destFolder.canonicalPath} does not exists")
+                    destFolder.mkdirs()
+                }
+            }
 
-        /*
+            project.task('rPackageInit', type: DevtoolsRCode) {
+                description = 'Initialize R package in empty directory'
+                def name = project.rpackage.name.get()
+                logger.info("Package name is $name")
+                expression = "devtools::setup(description=list(Package=\'$name\'));devtools::use_readme_md();devtools::use_testthat();devtools::use_vignette(\'$name\')"
+            }
+
+
+            def rPackageTestCoverage = project.task('rPackageTestCoverage', type: TestedPackageRCode) {
+                description = 'Runs test coverage on your package'
+                def dest = project.rpackage.dest.get()
+                logger.debug("Dssc dir of build is $dest")
+                expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$dest\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
+            }.dependsOn(rPackageTest, rPackageDest)
+
+
+            def rPackageLint = project.task('rPackageLint', type: PackageRCode) {
+                description = 'The default linters correspond to the style guide at http://r-pkgs.had.co.nz/r.html#style,\n' +
+                        'however it is possible to override any or all of them using the linters paramete'
+                def lintTypes = project.rpackage.lintTypes.get()
+                def dest = project.rpackage.dest.get()
+                logger.debug("Dssc dir of build is $dest")
+                expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$dest\',\'lint-report.html\'),winslash=\'/\'))"
+            }.dependsOn(rPackageDocument, rPackageDest)
+
+
+            def rPackageBuild = project.task('rPackageBuild', type: PackageRCode) {
+                description = 'Builds a package file from package sources'
+                def dest = project.rpackage.dest.get()
+                logger.debug("Dssc dir of build is $dest")
+                expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$dest\')"
+            }.dependsOn(rPackageDocument, rPackageCheck, rPackageBuildVignettes, rPackageTestCoverage, rPackageLint)
+
+
+            project.task('rPackageBuildWin', type: PackageRCode) {
+                description = 'Bundling source package, and then uploading to http://win-builder.r-project.org/'
+                def dest = project.rpackage.dest.get()
+                logger.debug("Dssc dir of build is $dest")
+                expression = "devtools::build_win(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$dest\')"
+            }.dependsOn(rPackageBuild)
+
+
+
+            project.task('rPackageVersion', type: PackageRCode) {
+                description = 'Sets version of R package'
+                def versionRelease = '0.0.1'
+                expression = "x=read.dcf('DESCRIPTION');x[,'Version']='" + versionRelease + "';write.dcf(x,file='DESCRIPTION')"
+            }
+
+            project.task('rRepoWritePackagesFile', type: RCode) {
+                def destLocalRepoPath = ""
+                expression = "tools::write_PACKAGES(\'$destLocalRepoPath\',type=\'source\',verbose=TRUE,subdirs=FALSE,addFiles=TRUE)"
+            }
+
+            /*
          project.task('rRepoCopy',  type:Copy) {
             def distPath = ""
             def destLocalRepoPath = ""
@@ -214,8 +216,8 @@ class RPlugin implements Plugin<Project> {
             }
         }
         */
-        
 
+        }
 
     }
 }

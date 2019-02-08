@@ -47,7 +47,7 @@ repositories {
 }
 
 group = 'com.github.arekbee'
-version = '0.9'
+version = '0.10'
 def pluginName = 'gradle-R-plugin'
 def pluginDescription = 'Gradle R plugin for R projects and packages'
 def packageWebsite = 'https://github.com/arekbee/gradle-R-plugin'
@@ -211,6 +211,6 @@ task publishItToPublic {
     group ='simple'
     dependsOn publishItToLocal
     dependsOn uploadArchives
-    //dependsOn publishPlugins
+    dependsOn publishPlugins
     //dependsOn publishSite
 }
