@@ -89,7 +89,7 @@ class RPlugin implements Plugin<Project> {
             expression = 'devtools::check()'
         }
 
-        def rPackageBuildVignettes = project.task('rPackageBuildVignettes', type: PackageRCode) {
+        project.task('rPackageBuildVignettes', type: PackageRCode) {
             description = 'Builds package vignettes using the same algorithm that R CMD build does. This means including non-Sweave vignettes, using makefiles (if present), and copying over extra files'
             expression = 'devtools::build_vignettes()'
         }
@@ -123,7 +123,7 @@ class RPlugin implements Plugin<Project> {
                 def dest = project.rpackage.dest.get()
                 def destFolder = new File(src, dest)
                 if (!destFolder.exists()){
-                    logger.warn("Desc folder ${destFolder.canonicalPath} does not exists")
+                    logger.warn("Destination/build folder ${destFolder.canonicalPath} does not exists. We will creat it.")
                     destFolder.mkdirs()
                 }
             }
@@ -141,7 +141,7 @@ class RPlugin implements Plugin<Project> {
                 def dest = project.rpackage.dest.get()
                 logger.debug("Dssc dir of build is $dest")
                 expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$dest\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
-            }.dependsOn(rPackageTest, rPackageDest)
+            }.dependsOn(rPackageDest)
 
 
             def rPackageLint = project.task('rPackageLint', type: PackageRCode) {
@@ -159,7 +159,7 @@ class RPlugin implements Plugin<Project> {
                 def dest = project.rpackage.dest.get()
                 logger.debug("Dssc dir of build is $dest")
                 expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$dest\')"
-            }.dependsOn(rPackageDocument, rPackageCheck, rPackageBuildVignettes, rPackageTestCoverage, rPackageLint)
+            }.dependsOn(rPackageDest )
 
 
             project.task('rPackageBuildWin', type: PackageRCode) {
@@ -192,7 +192,7 @@ class RPlugin implements Plugin<Project> {
             into destLocalRepoPath
             fileMode 0755
         }
-        
+
         
          project.task('rRepoArchive') {
             logger.debug "It should archive old packages"
