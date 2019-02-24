@@ -21,7 +21,8 @@ import com.github.arekbee.PackratRCode
 import org.gradle.api.tasks.Copy
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class RPlugin implements Plugin<Project> {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -113,11 +114,21 @@ class RPlugin implements Plugin<Project> {
 
         project.task('rPackageUseBuildIgnoreGradle', type: DevtoolsRCode) {
             description = 'Adds gradle files into .Rbuildignore file'
-            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\',\'tests/\',\'packrat/lib*\',\'packrat/src*\',\'gradle.properties\',\'.*report.html$\'),escape=FALSE)'
+            expression = 'devtools::use_build_ignore(c(\'.gradle\',\'gradle*\',\'build.cmd\',\'build/\',\'tests/\',\'packrat/lib*\',\'packrat/src*\',\'gradle.properties\',\'.*report.html$\',\'README.md\'),escape=FALSE)'
         }
 
+        def rPackageDest = project.task('rPackageDest', type:RTask)
+        def rPackageInit = project.task('rPackageInit', type:DevtoolsRCode)
+        def rPackageTestCoverage = project.task('rPackageTestCoverage', type: TestedPackageRCode)
+        def rPackageLint = project.task('rPackageLint', type: PackageRCode)
+        def rPackageBuild = project.task('rPackageBuild', type: PackageRCode)
+        def rPackageBuildWin = project.task('rPackageBuildWin', type: PackageRCode)
+        def rPackageVersion  = project.task('rPackageVersion', type: PackageRCode)
+        def rRepoWritePackagesFile = project.task('rRepoWritePackagesFile', type: RCode)
+        def rPackageBuildUnzip = project.task('rPackageBuildUnzip', type:Copy )
+
         project.afterEvaluate {
-            def rPackageDest = project.task('rPackageDest', type:RTask) {
+            rPackageDest.doFirst {
                 description ="Creates destination/build folder. By default it is '..'"
                 def src = project.r.src.get()
                 def dest = project.rpackage.dest.get()
@@ -128,58 +139,86 @@ class RPlugin implements Plugin<Project> {
                 }
             }
 
-            project.task('rPackageInit', type: DevtoolsRCode) {
+            rPackageInit.doFirst {
                 description = 'Initialize R package in empty directory'
                 def name = project.rpackage.name.get()
                 logger.info("Package name is $name")
                 expression = "devtools::setup(description=list(Package=\'$name\'));devtools::use_readme_md();devtools::use_testthat();devtools::use_vignette(\'$name\')"
             }
 
-
-            def rPackageTestCoverage = project.task('rPackageTestCoverage', type: TestedPackageRCode) {
+            rPackageTestCoverage.doFirst {
                 description = 'Runs test coverage on your package'
                 def dest = project.rpackage.dest.get()
-                logger.debug("Dssc dir of build is $dest")
                 expression = "covr::report(x=covr::package_coverage(),file=normalizePath(file.path(\'$dest\','code-cov-report.html'),winslash=\'/\'),browse=FALSE)"
             }.dependsOn(rPackageDest)
 
-
-            def rPackageLint = project.task('rPackageLint', type: PackageRCode) {
+            rPackageLint.doFirst {
                 description = 'The default linters correspond to the style guide at http://r-pkgs.had.co.nz/r.html#style,\n' +
                         'however it is possible to override any or all of them using the linters paramete'
                 def lintTypes = project.rpackage.lintTypes.get()
                 def dest = project.rpackage.dest.get()
-                logger.debug("Dssc dir of build is $dest")
                 expression = "print(xtable::xtable(subset(as.data.frame(devtools::lint()),type%in%c($lintTypes))), type=\'html\',file=normalizePath(file.path(\'$dest\',\'lint-report.html\'),winslash=\'/\'))"
-            }.dependsOn(rPackageDocument, rPackageDest)
+            }.dependsOn(rPackageDest)
 
-
-            def rPackageBuild = project.task('rPackageBuild', type: PackageRCode) {
+            rPackageBuild.doFirst {
                 description = 'Builds a package file from package sources'
                 def dest = project.rpackage.dest.get()
-                logger.debug("Dssc dir of build is $dest")
                 expression = "devtools::build(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$dest\')"
             }.dependsOn(rPackageDest )
 
-
-            project.task('rPackageBuildWin', type: PackageRCode) {
+            rPackageBuildWin.doFirst {
                 description = 'Bundling source package, and then uploading to http://win-builder.r-project.org/'
                 def dest = project.rpackage.dest.get()
-                logger.debug("Dssc dir of build is $dest")
                 expression = "devtools::build_win(vignettes=FALSE,args=\'--keep-empty-dirs\',path=\'$dest\')"
-            }.dependsOn(rPackageBuild)
+            }.dependsOn(rPackageDest )
 
-
-
-            project.task('rPackageVersion', type: PackageRCode) {
+            rPackageVersion.doFirst {
                 description = 'Sets version of R package'
-                def versionRelease = '0.0.1'
+                def versionRelease = project.rpackage.version.get()
                 expression = "x=read.dcf('DESCRIPTION');x[,'Version']='" + versionRelease + "';write.dcf(x,file='DESCRIPTION')"
+                println "expresion for  rPackageVersion is %expression"
             }
 
-            project.task('rRepoWritePackagesFile', type: RCode) {
-                def destLocalRepoPath = ""
+            rRepoWritePackagesFile.doFirst{
+                def destLocalRepoPath = project.rrepo.local.get()
+                def src = project.r.src.get()
+                def destFolder = new File(src, destLocalRepoPath)
+                if (!destFolder.exists()){
+                    logger.warn("Local Repository dir ${destFolder.canonicalPath} does not exists. We will creat it.")
+                    destFolder.mkdirs()
+                }
                 expression = "tools::write_PACKAGES(\'$destLocalRepoPath\',type=\'source\',verbose=TRUE,subdirs=FALSE,addFiles=TRUE)"
+            }
+
+            rPackageBuildUnzip.configure {
+                    group = 'rbase'
+                    def src = project.r.src.get()
+                    def dest = project.rpackage.dest.get()
+                    def unzipDir = project.rpackage.unzipDir.get()
+
+                    def destFolder = new File(src, dest)
+                    if (!destFolder.exists()) {
+                        logger.warn("Dest dir ${destFolder.canonicalPath} does not exists. Please run ${rPackageDest.name} task")
+                    } else {
+                        def p = Paths.get(destFolder.canonicalPath, unzipDir)
+                        def unzipDirFromDesc = new File(p.toString())
+                        if (!unzipDirFromDesc.exists()) {
+                            logger.warn("Unziped directory under ${unzipDirFromDesc.canonicalPath} does not exists. We will creat it.")
+                            unzipDirFromDesc.mkdirs()
+                        }
+
+                        FileTree tree = project.fileTree(dir: destFolder.canonicalPath)
+                        tree.include "*.tar.gz"
+                        tree.each { File file -> println("tar.gz file:  $file") }
+                        if (!tree.isEmpty()) {
+                            def fileToUnzip = tree.getAt(-1)
+                            logger.info("unzip file $fileToUnzip into $unzipDirFromDesc.canonicalPath")
+                            from project.tarTree(fileToUnzip)
+                            into unzipDirFromDesc.canonicalPath
+                        } else {
+                            logger.warn "There are not files in $tree"
+                        }
+                    }
             }
 
             /*
@@ -199,22 +238,7 @@ class RPlugin implements Plugin<Project> {
          }
 
         
-        project.task('rPackageBuildUnzip', type:Copy ) {
-            group = 'rbase'
-            def dest = project.rpackage.dest.get()
-            def unzipDir = project.rpackage.unzipDir.get()
-            FileTree tree = project.fileTree(dir: "$dest")
-            tree.include "*.tar.gz"
-            tree.each { File file -> println "tar.gz file:  $file" }
-            if (!tree.isEmpty()) {
-                def fileToUnzip = tree.getAt(-1)
-                logger.debug "unzip file $fileToUnzip into $unzipDir"
-                from tarTree(resources.gzip("$fileToUnzip"))
-                into unzipDir
-            } else {
-                logger.debug "There is not file in $buildDir"
-            }
-        }
+
         */
 
         }

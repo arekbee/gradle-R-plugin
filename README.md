@@ -29,7 +29,7 @@ gradle init
 In your R project, add the following plugin declaration to your build.gradle file:
 ``` groove
 plugins {
-  id "com.github.arekbee.gradle-R-plugin" version "0.10"
+  id "com.github.arekbee.gradle-R-plugin" version "0.12"
 }
 ```
 
@@ -42,7 +42,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.github.arekbee:gradle-R-plugin:0.10"
+    classpath "com.github.arekbee:gradle-R-plugin:0.12"
   }
 }
 
@@ -70,7 +70,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'com.github.arekbee:gradle-R-plugin:0.10'
+    classpath 'com.github.arekbee:gradle-R-plugin:0.12'
   }
 }
 ```
@@ -135,21 +135,16 @@ After setting the R plugin, you can now run commands like ./gradlew version in t
 | rSessionInfo | Print version information about R, the OS and attached or loaded packages.
 
 ## Tasks order
-Some tasks are dependent on other tasks. For example task  rPackageBuild is dependent on tasks rPackageBuildVignettes, rPackageCheck, rPackageDocument, rPackageLint, rPackageTestCoverage.
+Some tasks are dependent on other tasks. For example task  rPackageBuild is dependent on task :rPackageDest.
 
-Below graph represents dependencies for gradle-R-plugin tasks:
-```
-:rPackageBuildWin
-\--- :rPackageBuild
-     +--- :rPackageBuildVignettes
-     +--- :rPackageCheck
-     +--- :rPackageDocument
-     +--- :rPackageLint
-     |    +--- :rPackageDest
-     |    \--- :rPackageDocument
-     \--- :rPackageTestCoverage
-          +--- :rPackageDest
-          \--- :rPackageTest
+
+You can add tasks dependencies to predefined tasks in build.gradle :
+``` groove
+rPackageBuild.dependsOn(rPackageDocument)
+rPackageBuild.dependsOn(rPackageCheck)
+rPackageBuild.dependsOn(rPackageTest)
+
+rPackageBuildUnzip.dependsOn(rPackageBuild)
 ```
 
 ## Custom tasks
@@ -213,9 +208,9 @@ task task_file_rscript(type:RCode) {
 
 ## Documentation
 Task documentation is available by running:
-
+``` 
     ./gradlew help --task [task]
-
+``` 
 
 ## Contributing
 
